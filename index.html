@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>투두모두 초대 코드 적용 중...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        p {
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #007bff; /* 파란색 버튼 */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #007bff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="spinner"></div>
+    <h1>투두모두 앱을 실행 중입니다...</h1>
+    <p>초대 코드를 적용하고 앱을 실행합니다. 앱이 자동으로 열리지 않으면 아래 버튼을 클릭하여 다운로드하거나 열어주세요.</p>
+    <a id="fallbackLink" class="button" href="#">투두모두 앱 다운로드 또는 실행</a>
+
+    <script>
+        // 현재 URL에서 쿼리 파라미터(예: ?invitecode=674989)를 가져옵니다.
+        const urlParams = new URLSearchParams(window.location.search);
+        const inviteCode = urlParams.get('invitecode'); // 'invitecode' 파라미터 값 추출
+
+        let customUri;
+        if (inviteCode) {
+            // inviteCode가 있을 경우, 이를 포함하여 커스텀 URI 스킴을 생성합니다.
+            customUri = `todomodu:///invite?code=${encodeURIComponent(inviteCode)}`;
+            console.log("생성된 커스텀 URI:", customUri); // 개발자 도구에서 확인 가능
+        } else {
+            // inviteCode가 없을 경우, 기본 커스텀 URI 스킴으로 설정하거나, 에러 처리할 수 있습니다.
+            // 여기서는 초대 코드 없이 앱을 여는 기본 URI로 설정했습니다.
+            customUri = `todomodu:///`; 
+            console.log("초대 코드 없이 앱 실행 시도 (기본 URI):", customUri);
+            document.querySelector('p').innerText = "앱을 실행 중입니다. 앱이 자동으로 열리지 않으면 아래 버튼을 클릭하여 다운로드하거나 열어주세요.";
+        }
+        
+        // 투두모두 앱 다운로드 페이지 또는 앱스토어/플레이스토어 링크
+        const appStoreLink = "https://apps.apple.com/us/app/투두모두/id6747877893"; // iOS 앱스토어 실제 링크로 변경
+        const playStoreLink = "https://apps.apple.com/us/app/투두모두/id6747877893"; // 안드로이드 플레이스토어 실제 링크로 변경
+        const defaultFallbackUrl ="https://apps.apple.com/us/app/투두모두/id6747877893"; // 투두모두 공식 다운로드 페이지 등 (실제 링크로 변경)
+
+        let fallbackUrl = defaultFallbackUrl;
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+        if (/android/i.test(userAgent)) {
+            fallbackUrl = playStoreLink;
+        } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+            fallbackUrl = appStoreLink;
+        }
+
+        // 앱 실행을 시도하는 함수
+        function redirectToApp() {
+            // 커스텀 URI를 호출하여 앱 실행을 시도합니다.
+            window.location.href = customUri;
+
+            // 앱이 실행되지 않았을 때 대체 URL로 리다이렉트하기 위한 타이머
+            const appOpenTimeout = setTimeout(() => {
+                window.location.href = fallbackUrl;
+            }, 500); // 0.5초 대기 후 리다이렉트 (필요에 따라 조절)
+
+            // 불필요한 리다이렉트를 막기 위해 타이머를 해제합니다.
+            window.addEventListener('blur', () => clearTimeout(appOpenTimeout));
+            window.addEventListener('beforeunload', () => clearTimeout(appOpenTimeout));
+        }
+
+        // 페이지 로드 시 실행
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('fallbackLink').href = fallbackUrl;
+            redirectToApp();
+        });
+    </script>
+</body>
+</html>
